@@ -1,33 +1,88 @@
 <template>
     <div class="recommend">
-      <div class="recommend-content">
-        <div class="slider-wrapper">
+      <scroll ref="scroll" class="recommend-content" :data="discList">
+        <div>
+          <div v-if="recommends.length" class="slider-wrapper">
+            <slider>
+              <div v-for="item in recommends" v-bind:key="item.picUrl">
+                <a :href="item.linkUrl">
+                  <img :src="item.picUrl"/>
+                </a>
+              </div>
+            </slider>
+          </div>
+          <div class="recommend-list">
+            <h1 class="list-title">热门歌单推荐</h1>
+            <ul>
+              <li v-for="item in discList" :key="item.dissid" class="item">
+                <div class="icon">
+                  <img @load="loadImage" width="60" height="60" :src="item.imgurl"/>
+                </div>
+                <div class="text">
+                  <h2 class="name" v-html="item.creator.name"></h2>
+                  <p class="desc" v-html="item.dissname"></p>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div class="recommend-list">
-          <h1 class="list-title">热门歌单推荐</h1>
-          <ul>
-          </ul>
-        </div>
-      </div>
+      </scroll>
     </div>
 </template>
 
 <script type="text/ecmascript-6">
-import {getRecommend} from 'api/recommend'
+import Scroll from 'base/scroll/scroll'
+import Slider from 'base/slider/slider'
+import {getRecommend, getDiscList} from 'api/recommend'
 import {ERR_OK} from 'api/config'
 
 export default {
+  data() {
+    return {
+      recommends: [
+        {
+          linkUrl: '1',
+          picUrl: 'https://y.gtimg.cn/music/common/upload/category_area/1792326.jpg?max_age=2592000'
+        },
+        {
+          linkUrl: '2',
+          picUrl: 'https://y.gtimg.cn/music/common/upload/category_area/2358265.jpg?max_age=2592000'
+        }
+      ],
+      discList: []
+    }
+  },
   created () {
     this._getRecommend()
+    this._getDiscList()
   },
   methods: {
     _getRecommend() {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {
-          console.log(res.data.slider)
+          this.recommends = res.data.slider
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    _getDiscList() {
+      getDiscList().then((res) => {
+        if (res.code === ERR_OK) {
+          this.discList = res.data.list
         }
       })
+    },
+    loadImage() {
+      if (!this.checkLoaded) {
+        this.$refs.scroll.refresh()
+        this.checkLoaded = true
+      }
     }
+  },
+  components: {
+    Slider,
+    Scroll
   }
 }
 </script>
